@@ -3,8 +3,18 @@
 #include <fstream>
 #include <string.h>
 #include <string>
+#include <algorithm> 
 using namespace std;
 
+typedef struct suffix
+{
+ int n;
+ char *p;
+}sa;
+bool compare(string a,string b)
+{
+ return a<b;
+}
 Sequence::Sequence(char* filename)
 {
  ifstream in(filename);
@@ -83,50 +93,66 @@ string Sequence::longestConsecutive()
  }
  return longestcon;
 }
-
+int com(const void *a,const void *b)
+{
+ sa A=*((sa*)a);
+ sa B=*((sa*)b);
+ int i=0;
+ while(true)
+ {
+  if(i==A.n||i==B.n)
+  {
+   break;
+  }
+  if(*(A.p+i)!=*(B.p+i))
+  {
+   return *(A.p+i)-*(B.p+i);
+  }
+   i++;
+ }
+ return A.n-B.n;
+}
 string Sequence::longestRepeated()
 {
- string longest;
- int num = 120;
- for(int i = 0;i<len-1;i++)
+ string thelongest;
+ sa *s = (sa*)new sa[len +10];
+ for(int i=0;i<len;i++)
  {
-  string tem1;
-  if(num >= 150)
+  s[i].p =&line[i];
+  s[i].n = len -i;
+ }
+ qsort(s,len,sizeof(s[0]),com);
+ int start =0;
+ int maxlenght = 0;
+ for(int i=0;i<len-1;i++)
+ {
+  if((s[i].n)<=maxlenght)
   {
-   break;
+   continue;
   }
-  if((len-i-1)<num)
+  if((s[i+1].n)<=maxlenght)
   {
-   break;
+   i++;
+   continue;
   }
-  for(int j= i;j < len-1; j++)
+  for(int j=0;j<s[i].n&&j<s[i+1].n;j++)
   {
-   tem1 += line[j];
-   int a = tem1.length();
-   if(a< num)
+   if(*(s[i].p+j)!=*(s[i+1].p+j))
    {
-    continue;
-   }
-    for(int k = j+1;k<len - a;k++)
+    if(j>maxlenght)
     {
-     string tem2;
-     int counter=0;
-     for(int m = k;m<k+a;m++)
-     {
-      if(line[m]!= tem1[m-k])
-      {
-       break;
-      }
-      tem2+=line[m];
-      ++counter;
-     }
-     if(counter ==a)
-     {
-      longest = tem1;
-      num =counter;
-     }
+     start = i;
+     maxlenght = j;
     }
+    break;
+   }
   }
  }
- return longest;
+ for(int i=0;i<maxlenght;i++)
+ {
+  thelongest += *(s[start].p+i);
+ }
+ //string thelongest =string{s[start].p,lenght};
+ delete []s;
+ return thelongest;
 }
